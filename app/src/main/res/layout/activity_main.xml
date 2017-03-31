@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.looser43.testnupuit.MainActivity">
+
+    <include layout="@layout/header_layout"
+        android:id="@+id/header_layout"/>
+
+    <android.support.v7.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/contact_list_recyclerview"
+        android:layout_below="@+id/header_layout">
+
+        <!--<include layout="@layout/loading_button"-->
+            <!--android:id="@+id/load_more"/>-->
+
+    </android.support.v7.widget.RecyclerView>
+
+
+</RelativeLayout>
