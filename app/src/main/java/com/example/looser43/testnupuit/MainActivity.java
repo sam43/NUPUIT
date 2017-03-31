@@ -1,7 +1,17 @@
 package com.example.looser43.testnupuit;
 
+
+import android.Manifest;
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.ContactsContract;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -20,11 +30,19 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import de.hdodenhof.circleimageview.CircleImageView;
 
+
 public class MainActivity extends AppCompatActivity {
 
     private List<Contact> contactList = new ArrayList<>();
     private ContactListAdapter contactListAdapter;
     public Handler h;
+    Database myDB;
+    Boolean permission=false;
+    int exist;
+
+    private String mOrderBy = ContactsContract.Contacts.DISPLAY_NAME_PRIMARY;
+    public static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 99;
+
 
     @BindView(R.id.contact_photo)
     CircleImageView contactPhoto;
@@ -41,15 +59,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        for (int i = 0; i < 10; i++) {
-            Contact contact = new Contact();
-            contact.setContactName(" "+i); // Displays the name
-            contact.setContactNumber("+880"+i);
-            contactList.add(contact);
-        }
-
+        showAllContacts();
         contactListRecyclerview.setLayoutManager(new LinearLayoutManager(this));
-        contactListAdapter = new ContactListAdapter();
+        contactListAdapter = new ContactListAdapter(contactList, getApplicationContext());
         contactListRecyclerview.setAdapter(contactListAdapter);
 
         contactListAdapter.setOnLoadMore(new OnLoadMore() {
@@ -68,16 +80,7 @@ public class MainActivity extends AppCompatActivity {
                         contactListAdapter.notifyItemRemoved(contactList.size());
                         //Load data
 
-                        int index = contactList.size();
-                        int end = index + 10;
-
-                        for (int i = index; i < end ; i++) {
-                            Contact contact = new Contact();
-                            contact.setContactName(" "+i); // Displays the name
-                            contact.setContactNumber("+880"+i);
-                            contactList.add(contact);
-                        }
-
+                        showAllContacts();
                         contactListAdapter.notifyDataSetChanged();
                         contactListAdapter.setLoaded();
                     }
@@ -87,6 +90,101 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private List<Contact> showAllContacts() {
+        // Check the SDK version and whether the permission is already granted or not.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.READ_CONTACTS}, MY_PERMISSIONS_REQUEST_READ_CONTACTS);
+            //After this point you wait for callback in onRequestPermissionsResult(int, String[], int[]) overriden method
+        } else {
+            // Android version is lesser than 6.0 or the permission is already granted.
+            //List<Contact> contacts = new ArrayList<>();
+            getAllContacts();
+            //ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.co, contacts);
+            //rvContacts.setAdapter(contacts);
+            //getAllContacts();
+            //return contacts;
+        }
+        return null;
+    }
+
+
+    private void getAllContacts() {
+        List<Contact> contactList = new ArrayList<>();
+        Contact contact;
+        ContentResolver contentResolver = getContentResolver();
+        Cursor cursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC");
+        if (cursor.getCount() > 0) {
+            while (cursor.moveToNext()) {
+
+                int hasPhoneNumber = Integer.parseInt(cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)));
+                if (hasPhoneNumber > 0) {
+                    String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
+                    String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+
+                    contact = new Contact();
+                    contact.setContactName(name);
+
+                    Cursor phoneCursor = contentResolver.query(
+                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                            null,
+                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
+                            new String[]{id},
+                            null);
+                    if (phoneCursor.moveToNext()) {
+                        String phoneNumber = phoneCursor.getString(phoneCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                        contact.setContactNumber(phoneNumber);
+                    }
+
+                    phoneCursor.close();
+                    contactList.add(contact);
+                }
+            }
+
+            Cursor c = myDB.getAllData();
+            if (c != null && c.getCount() > 0) {
+                while (c.moveToNext()) {
+                    String name = c.getString(1);
+                    String phoneNo = c.getString(0);
+                    contact = new Contact();
+                    contact.setContactName(name);
+                    contact.setContactNumber(phoneNo);
+                    contactList.add(contact);
+                }
+            }
+
+            ContactListAdapter contactAdapter = new ContactListAdapter(contactList, getApplicationContext());
+            contactListRecyclerview.setLayoutManager(new LinearLayoutManager(this));
+            contactListRecyclerview.setAdapter(contactAdapter);
+        }
+    }
+
+/*    private void displayAllContacts() {
+
+        //it will call constructor of databae class.
+        // so the db will get created and also a table
+        List<Contact> contactList = new ArrayList<>();
+        Contact contactListItem;
+
+        Cursor c = myDB.getAllData();
+        if(c!=null && c.getCount()>0)
+
+        {
+            while (c.moveToNext()) {
+
+                String name = c.getString(1);
+                String phoneNo = c.getString(0);
+                contactListItem = new Contact();
+                contactListItem.setContactName(name);
+                contactListItem.setContactNumber(phoneNo);
+                contactList.add(contactListItem);
+            }
+
+        }
+
+        ContactListAdapter contactAdapter = new ContactListAdapter(contactList, getApplicationContext());
+        contactListRecyclerview.setLayoutManager(new LinearLayoutManager(this));
+        contactListRecyclerview.setAdapter(contactAdapter);
+    }*/
 
     static class LoadingViewHolder extends RecyclerView.ViewHolder {
 
@@ -120,7 +218,7 @@ public class MainActivity extends AppCompatActivity {
         private int visibleContacts = 10;
         private int lastVisibleItem, totalItemCount;
 
-        public ContactListAdapter() {
+        public ContactListAdapter(List<Contact> contactList, Context applicationContext) {
             final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) contactListRecyclerview.getLayoutManager();
             contactListRecyclerview.addOnScrollListener(new RecyclerView.OnScrollListener() {
                 @Override
@@ -168,16 +266,16 @@ public class MainActivity extends AppCompatActivity {
                 ContactViewHolder contactViewHolder = (ContactViewHolder) holder;
                 contactViewHolder.contactName.setText(contact.getContactName());
                 contactViewHolder.contactNumber.setText(contact.getContactNumber());
-            }
-            else if (holder instanceof LoadingViewHolder) {
+            } else if (holder instanceof LoadingViewHolder) {
                 final LoadingViewHolder loadingViewHolder = (LoadingViewHolder) holder;
                 loadingViewHolder.loadmore.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         // code here
-                        loadingViewHolder.loadmore.setVisibility(View.GONE);
-                        loadingViewHolder.progressBar.setVisibility(View.VISIBLE);
+                        loadingViewHolder.loadmore.setVisibility(View.VISIBLE);
+                        loadingViewHolder.progressBar.setVisibility(View.GONE);
                         loadingViewHolder.progressBar.setIndeterminate(true);
+
                     }
                 });
             }
