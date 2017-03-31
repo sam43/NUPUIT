@@ -33,17 +33,11 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MainActivity extends AppCompatActivity {
 
-    private List<Contact> contactList = new ArrayList<>();
-    private ContactListAdapter contactListAdapter;
+    public static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 99;
     public Handler h;
     Database myDB;
-    Boolean permission=false;
+    Boolean permission = false;
     int exist;
-
-    private String mOrderBy = ContactsContract.Contacts.DISPLAY_NAME_PRIMARY;
-    public static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 99;
-
-
     @BindView(R.id.contact_photo)
     CircleImageView contactPhoto;
     @BindView(R.id.contact_name)
@@ -52,6 +46,9 @@ public class MainActivity extends AppCompatActivity {
     ImageView tickMark;
     @BindView(R.id.contact_list_recyclerview)
     RecyclerView contactListRecyclerview;
+    private List<Contact> contactList = new ArrayList<>();
+    private ContactListAdapter contactListAdapter;
+    private String mOrderBy = ContactsContract.Contacts.DISPLAY_NAME_PRIMARY;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
                 h.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                      // Removes the loading item
+                        // Removes the loading item
                         contactList.remove(contactList.size() - 1);
                         contactListAdapter.notifyItemRemoved(contactList.size());
                         //Load data
@@ -84,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
                         contactListAdapter.notifyDataSetChanged();
                         contactListAdapter.setLoaded();
                     }
-                },5000);
+                }, 5000);
             }
         });
 
@@ -140,25 +137,16 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            Cursor c = myDB.getAllData();
-            if (c != null && c.getCount() > 0) {
-                while (c.moveToNext()) {
-                    String name = c.getString(1);
-                    String phoneNo = c.getString(0);
-                    contact = new Contact();
-                    contact.setContactName(name);
-                    contact.setContactNumber(phoneNo);
-                    contactList.add(contact);
-                }
-            }
-
-            ContactListAdapter contactAdapter = new ContactListAdapter(contactList, getApplicationContext());
-            contactListRecyclerview.setLayoutManager(new LinearLayoutManager(this));
-            contactListRecyclerview.setAdapter(contactAdapter);
+            displayAllContacts();
         }
+
+        ContactListAdapter contactAdapter = new ContactListAdapter(contactList, getApplicationContext());
+        contactListRecyclerview.setLayoutManager(new LinearLayoutManager(this));
+        contactListRecyclerview.setAdapter(contactAdapter);
+
     }
 
-/*    private void displayAllContacts() {
+    private void displayAllContacts() {
 
         //it will call constructor of databae class.
         // so the db will get created and also a table
@@ -166,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
         Contact contactListItem;
 
         Cursor c = myDB.getAllData();
-        if(c!=null && c.getCount()>0)
+        if (c != null && c.getCount() > 0)
 
         {
             while (c.moveToNext()) {
@@ -184,12 +172,13 @@ public class MainActivity extends AppCompatActivity {
         ContactListAdapter contactAdapter = new ContactListAdapter(contactList, getApplicationContext());
         contactListRecyclerview.setLayoutManager(new LinearLayoutManager(this));
         contactListRecyclerview.setAdapter(contactAdapter);
-    }*/
+    }
 
     static class LoadingViewHolder extends RecyclerView.ViewHolder {
 
         public Button loadmore;
         public ProgressBar progressBar;
+
         public LoadingViewHolder(View itemView) {
             super(itemView);
             loadmore = (Button) itemView.findViewById(R.id.load_more);
