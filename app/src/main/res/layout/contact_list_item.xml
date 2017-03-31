@@ -4,9 +4,11 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal">
 
-    <QuickContactBadge
+    <ImageView
         android:layout_width="50dp"
         android:layout_height="50dp"
+        android:src="@drawable/usericon"
+        android:layout_margin="5dp"
         android:id="@+id/profile_image"/>
 
     <LinearLayout
@@ -14,7 +16,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="10dp"
         android:layout_marginEnd="20dp">
 
         <TextView
@@ -22,6 +24,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/person_name"
             android:text="Person name"
+            android:textColor="#303030"
             android:layout_marginStart="5dp"
             android:textSize="18sp"
             android:textStyle="bold"/>
@@ -29,10 +32,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/person_number"
+            android:textColor="#303030"
             android:text="+8801234589637"
             android:textSize="16sp"/>
-
-
 
     </LinearLayout>
 

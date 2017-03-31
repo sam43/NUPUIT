@@ -15,6 +15,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,8 +37,8 @@ public class MainActivity extends AppCompatActivity {
     public static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 99;
     public Handler h;
     Database myDB;
-    Boolean permission = false;
-    int exist;
+    //Boolean permission = false;
+    //int exist;
     @BindView(R.id.contact_photo)
     CircleImageView contactPhoto;
     @BindView(R.id.contact_name)
@@ -56,7 +57,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        myDB = new Database(this);
+        //exist = myDB.tableExists();
+
         showAllContacts();
+        //Log.d("cont", String.valueOf(displayAllContacts());
         contactListRecyclerview.setLayoutManager(new LinearLayoutManager(this));
         contactListAdapter = new ContactListAdapter(contactList, getApplicationContext());
         contactListRecyclerview.setAdapter(contactListAdapter);
@@ -101,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
             //getAllContacts();
             //return contacts;
         }
-        return null;
+        return contactList;
     }
 
 
@@ -166,6 +171,8 @@ public class MainActivity extends AppCompatActivity {
                 contactListItem.setContactNumber(phoneNo);
                 contactList.add(contactListItem);
             }
+
+            getAllContacts();
 
         }
 
